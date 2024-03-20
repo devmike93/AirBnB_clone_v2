@@ -1,49 +1,28 @@
 #!/usr/bin/python3
 """A unit test module for the console (command interpreter).
 """
-import json
-import MySQLdb
-import os
-import sqlalchemy
 import unittest
-from io import StringIO
 from unittest.mock import patch
+from io import StringIO
+import sqlalchemy
+import os
+import MySQLdb
+import json
 
-from console import HBNBCommand
 from models import storage
-from models.base_model import BaseModel
+from console import HBNBCommand
 from models.user import User
+from models.base_model import BaseModel
 from tests import clear_stream
 
 
 class TestHBNBCommand(unittest.TestCase):
     """Represents the test class for the HBNBCommand class.
     """
-    @unittest.skipIf(
-        os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
-    def test_fs_create(self):
-        """Tests the create command with the file storage.
-        """
-        with patch('sys.stdout', new=StringIO()) as cout:
-            cons = HBNBCommand()
-            cons.onecmd('create City name="Texas"')
-            mdl_id = cout.getvalue().strip()
-            clear_stream(cout)
-            self.assertIn('City.{}'.format(mdl_id), storage.all().keys())
-            cons.onecmd('show City {}'.format(mdl_id))
-            self.assertIn("'name': 'Texas'", cout.getvalue().strip())
-            clear_stream(cout)
-            cons.onecmd('create User name="James" age=17 height=5.9')
-            mdl_id = cout.getvalue().strip()
-            self.assertIn('User.{}'.format(mdl_id), storage.all().keys())
-            clear_stream(cout)
-            cons.onecmd('show User {}'.format(mdl_id))
-            self.assertIn("'name': 'James'", cout.getvalue().strip())
-            self.assertIn("'age': 17", cout.getvalue().strip())
-            self.assertIn("'height': 5.9", cout.getvalue().strip())
 
     @unittest.skipIf(
         os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
+    
     def test_db_create(self):
         """Tests the create command with the database storage.
         """
@@ -71,9 +50,63 @@ class TestHBNBCommand(unittest.TestCase):
             self.assertIn('123', result)
             cursor.close()
             dbc.close()
+            
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db', 'FileStorage test')
+
+    def test_filestore_create(self):
+        """Tests the create command with the file storage.
+        """
+        with patch('sys.stdout', new=StringIO()) as cout:
+            cons = HBNBCommand()
+            cons.onecmd('create City name="Texas"')
+            mdl_id = cout.getvalue().strip()
+            clear_stream(cout)
+            self.assertIn('City.{}'.format(mdl_id), storage.all().keys())
+            cons.onecmd('show City {}'.format(mdl_id))
+            self.assertIn("'name': 'Texas'", cout.getvalue().strip())
+            clear_stream(cout)
+            cons.onecmd('create User name="James" age=17 height=5.9')
+            mdl_id = cout.getvalue().strip()
+            self.assertIn('User.{}'.format(mdl_id), storage.all().keys())
+            clear_stream(cout)
+            cons.onecmd('show User {}'.format(mdl_id))
+            self.assertIn("'name': 'James'", cout.getvalue().strip())
+            self.assertIn("'age': 17", cout.getvalue().strip())
+            self.assertIn("'height': 5.9", cout.getvalue().strip())
 
     @unittest.skipIf(
         os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
+
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
+    
+    def test_db_count(self):
+        """Tests the count command with the database storage.
+        """
+        with patch('sys.stdout', new=StringIO()) as cout:
+            cons = HBNBCommand()
+            dbc = MySQLdb.connect(
+                host=os.getenv('HBNB_MYSQL_HOST'),
+                port=3306,
+                user=os.getenv('HBNB_MYSQL_USER'),
+                passwd=os.getenv('HBNB_MYSQL_PWD'),
+                db=os.getenv('HBNB_MYSQL_DB')
+            )
+            cursor = dbc.cursor()
+            cursor.execute('SELECT COUNT(*) FROM states;')
+            res = cursor.fetchone()
+            prev_count = int(res[0])
+            cons.onecmd('create State name="Enugu"')
+            clear_stream(cout)
+            cons.onecmd('count State')
+            cnt = cout.getvalue().strip()
+            self.assertEqual(int(cnt), prev_count + 1)
+            clear_stream(cout)
+            cons.onecmd('count State')
+            cursor.close()
+            dbc.close()
+
     def test_db_show(self):
         """Tests the show command with the database storage.
         """
@@ -115,33 +148,5 @@ class TestHBNBCommand(unittest.TestCase):
             self.assertIn('123', result)
             self.assertIn('john25@gmail.com', cout.getvalue())
             self.assertIn('123', cout.getvalue())
-            cursor.close()
-            dbc.close()
-
-    @unittest.skipIf(
-        os.getenv('HBNB_TYPE_STORAGE') != 'db', 'DBStorage test')
-    def test_db_count(self):
-        """Tests the count command with the database storage.
-        """
-        with patch('sys.stdout', new=StringIO()) as cout:
-            cons = HBNBCommand()
-            dbc = MySQLdb.connect(
-                host=os.getenv('HBNB_MYSQL_HOST'),
-                port=3306,
-                user=os.getenv('HBNB_MYSQL_USER'),
-                passwd=os.getenv('HBNB_MYSQL_PWD'),
-                db=os.getenv('HBNB_MYSQL_DB')
-            )
-            cursor = dbc.cursor()
-            cursor.execute('SELECT COUNT(*) FROM states;')
-            res = cursor.fetchone()
-            prev_count = int(res[0])
-            cons.onecmd('create State name="Enugu"')
-            clear_stream(cout)
-            cons.onecmd('count State')
-            cnt = cout.getvalue().strip()
-            self.assertEqual(int(cnt), prev_count + 1)
-            clear_stream(cout)
-            cons.onecmd('count State')
             cursor.close()
             dbc.close()

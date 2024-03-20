@@ -135,10 +135,10 @@ class HBNBCommand(cmd.Cmd):
 
             param_pattern = '{}=({}|{}|{})'.format(
                 code_pattern,
-                int_pattern
+                int_pattern,
                 float_pattern,
-                str_pattern,
-            )
+                str_pattern
+                )
             for param in parameters:
                 matched_param = re.fullmatch(param_pattern, param)
                 if matched_param is not None:

@@ -15,7 +15,12 @@ class FileStorage:
         '''
         if cls is None:
             return self.__objects
-        return {k: v for k, v in self.__objects.items() if isinstance(v, cls)}
+        cls_name = cls.__name__
+        archive = {}
+        for key in self.__objects.keys():
+            if key.split('.')[0] == cls_name:
+                archive[key] = self.__objects[key]
+        return archive
 
 
     def new(self, obj):
@@ -66,7 +71,7 @@ class FileStorage:
     def delete(self, obj=None):
         '''
         deletes the object obj from the attribute
-            __objects if it's inside it
+        __objects if it's inside it
         '''
         if obj is None:
             return

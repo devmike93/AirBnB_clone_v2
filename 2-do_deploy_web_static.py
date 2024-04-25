@@ -6,7 +6,7 @@ from datetime import datetime
 from os import path
 
 
-env.hosts = ['35.168.3.122', '52.91.202.111']
+env.hosts = ['35.168.3.122', '100.25.144.40']
 env.user = 'ubuntu'
 env.key_filename = '~/.ssh/alxkey'
 

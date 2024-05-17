@@ -1,10 +1,8 @@
 # Files we don't need:
-*~
-\#*\#
+7-states_list.sql
 __pycache__/
 versions/
 *main*.py
 *.pyo
 *.pyc
-*.sql
 file.json
